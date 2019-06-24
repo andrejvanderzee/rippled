@@ -37,5 +37,37 @@ RUN mkdir my_build && \
     cmake ..  && \
     cmake --build .
 
-WORKDIR /home/ripple
+USER root
+RUN apt-get install -y build-essential vim python3-dev libclang-7-dev doxygen graphviz tree
 
+ARG GO_VERSION=1.12.6
+RUN cd /usr/local && \
+    wget -q https://dl.google.com/go/go$GO_VERSION.linux-amd64.tar.gz && \
+    tar -xzf  go$GO_VERSION.linux-amd64.tar.gz
+ENV PATH=$PATH:/usr/local/go/bin
+
+USER ripple
+COPY vimrc /home/ripple/.vimrc
+RUN mkdir -p /home/ripple/.vim/bundle && \
+    git clone https://github.com/VundleVim/Vundle.vim.git /home/ripple/.vim/bundle/Vundle.vim && \
+    vim +PluginInstall +qall && \
+    cd /home/ripple/.vim/bundle/YouCompleteMe && \
+    python3 install.py --clang-completer --go-completer
+
+#USER root
+#RUN apt-get install -y clang git python python-dev ctags ncurses-term libxt6 libx11-6 nodejs \
+#    make libxpm-dev libx11-dev libxt-dev ncurses-dev curl npm
+#RUN cd /usr/local && \
+#    git clone --depth=1 https://github.com/vim/vim && \
+#    cd /usr/local/vim && \
+#    ./configure --with-features=big \
+#                --enable-multibyte \
+#                --enable-pythoninterp \
+#                --with-python-config-dir=/usr/lib/python2.7/config \
+#                --disable-gui \
+#                --disable-netbeans \
+#                --prefix /usr && \
+#    make install
+
+USER ripple
+WORKDIR /home/ripple
